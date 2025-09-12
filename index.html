@@ -1,31 +1,623 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading Page</title>
+    <title>PGA - Primate Genome-phenome Archive</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        html, body {
-            height: 100%;
+        * {
             margin: 0;
-            background-color: #000;
-            font-family: Arial, sans-serif;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Ubuntu Mono', 'Courier New', monospace;
+            line-height: 1.6;
+            color: #F6F7EB;
+            background-color: #010400;
+        }
+
+        h1, h2, h3, h4, h5, h6, .logo {
+            font-family: 'Ubuntu', 'Trebuchet MS', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #010400;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #010400;
+            color: #F6F7EB;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: #F6F7EB;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav li {
+            position: relative;
+        }
+
+        nav a {
+            color: #F0A202;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            display: block;
+        }
+
+        nav a:hover,
+        nav a:active {
+            color: #E94F37;
+        }
+
+        nav a:visited {
+            color: #F0A202;
+        }
+
+        nav a.download {
+            background-color: #E94F37;
+            color: #F6F7EB;
+        }
+
+        nav a.download:hover {
+            background-color: #d63d28;
+            color: #F6F7EB;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #0a0f08;
+            border: 1px solid #1a1f18;
+            border-radius: 6px;
+            min-width: 150px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .dropdown a {
+            background: none;
+            color: #F0A202;
+            padding: 0.75rem 1rem;
+            border-radius: 0;
+            border-bottom: 1px solid #1a1f18;
+        }
+
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown a:hover {
+            background-color: #1a1f18;
+            color: #E94F37;
+        }
+
+        nav li:hover .dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        main {
+            padding: 3rem 2rem;
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .hero-content {
+            flex: 1;
+            text-align: left;
+        }
+
+        .hero-image {
+            flex: 0 0 55%;
+            max-width: 550px;
+            aspect-ratio: 16/9;
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 150px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
         }
 
-        .loading-text {
-            color: white;
-            font-weight: bold;
-            font-size: 2rem;
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .hero-image:hover img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .hero-image::after {
+            content: '🔍';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #F0A202;
+            padding: 8px;
+            border-radius: 50%;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .hero-image:hover::after {
+            opacity: 1;
+        }
+
+        .hero h1 {
+            font-size: 1.67rem;
+            margin-bottom: 1rem;
+            color: #F6F7EB;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: #F6F7EB;
+            max-width: none;
+            margin: 0 0 1rem 0;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .hero a:link, .hero a:visited {
+            color:#B65D97;
+            font-weight:bold;
+            text-decoration:none;
+        }
+
+        .hero strong {
+            color:#A5DBDB;
+        }
+
+        /* Modal Styles */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .image-modal.show {
+            display: flex;
+            opacity: 1;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 95%;
+            max-height: 95%;
+            transform: scale(0.8);
+            transition: transform 0.4s ease;
+        }
+
+        .image-modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: #F0A202;
+            font-size: 32px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.7);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .close-modal:hover {
+            color: #E94F37;
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+
+        .modal-caption {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #F6F7EB;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .card {
+            background: #0a0f08;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #1a1f18;
+        }
+
+        .card h3 {
+            color: #F0A202;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        .card li {
+            list-style: none;
+            margin-bottom: 8px;
+        }
+
+        .card a {
+            color: #F0A202;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .card a:hover {
+            color: #E94F37;
+        }
+
+        .loading {
+            color: #F0A202;
+            font-style: italic;
+        }
+
+        .error {
+            color: #E94F37;
+            font-style: italic;
+        }
+
+        .commit-date {
+            color: #888;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        footer {
+            background-color: #050a03;
+            color: #F6F7EB;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid #222;
+        }
+
+        @media (max-width: 1024px) {
+            .hero-image {
+                flex: 0 0 40%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+
+            .hero-content {
+                text-align: center;
+            }
+
+            .hero-image {
+                flex: none;
+                width: 100%;
+                max-width: 100%;
+                min-height: 200px;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            main {
+                padding: 2rem 1rem;
+            }
+
+            .close-modal {
+                top: -50px;
+                font-size: 28px;
+                width: 35px;
+                height: 35px;
+            }
+
+            .modal-caption {
+                bottom: -60px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-image {
+                min-height: 150px;
+            }
+            
+            .hero h1 {
+                font-size: 1.3rem;
+            }
+            
+            .hero p {
+                font-size: 0.9rem;
+            }
+
+            .modal-content {
+                max-width: 98%;
+                max-height: 98%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="loading-text">
-    <img src="alt.logo.png" width="300px" height="auto"/>
-        loading...
+    <div class="container">
+        <header>
+            <img src="img/logo.png" width="300px" height="auto"/>
+            <nav>
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li>
+                        <a href="#download" class="download">Download</a>
+                        <div class="dropdown">
+                            <a href="https://github.com/pgarchive/data" target="_blank">GitHub</a>
+                            <a href="https://docs.google.com/spreadsheets/d/1DyBKiZdaz6YW_cAj8fbupxuaTxv33SvBV8LYF2hMD0k/edit?usp=sharing" target="_blank">Google Docs</a>
+                        </div>
+                    </li>
+                    <li><a href="#documentation">Documentation</a></li>
+                    <li>
+                        <a href="#cite">How To Cite</a>
+                        <div class="dropdown">
+                            <p>The preprint presenting these data (Valenzuela et al., 2025) is available in BioRxiv. <a href="https://www.biorxiv.org/content/10.1101/2025.09.08.674744v1" target="_blank">Access the preprint.</a></p>
+                        </div>
+                    </li>
+                    <li><a target="_blank" href="https://www.ibe.upf-csic.es/">IBE/UPF</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero" id="home">
+                <div class="hero-content">
+                    <h1>Welcome to the Primate Genome-phenome Archive</h1>
+<p>The Primate Genome-phenome Archive (PGA) is a comprehensive repository of <strong>263 complex traits</strong> across <strong>233 primate species</strong>, each with a predicted genetic background inferred through comparative methods. These predictions draw on convergent amino acid substitution analyses (<a href="https://doi.org/10.1093/bioinformatics/btad623" target="_blank" rel="noopener noreferrer">Barteri et al., 2023</a>) and relative evolutionary rates (RER) estimations (<a href="https://doi.org/10.1093/bioinformatics/btz468" target="_blank" rel="noopener noreferrer">Kowalczyk et al., 2019</a>), providing valuable insights into the molecular underpinnings of primate trait evolution. The findings presented here originate from the work of <a href="https://www.biorxiv.org/content/10.1101/2025.09.08.674744v1" target="_blank" rel="noopener noreferrer">Valenzuela et al. (2025)</a>, which highlights significant patterns of convergence and divergence among diverse primate lineages. The database is openly accessible on GitHub in a standardized format, allowing for programmatic data retrieval and integration. Comprehensive documentation, including a detailed changelog, is available on the <a href="https://github.com/pgarchive/data" target="_blank" rel="noopener noreferrer">GitHub repository</a>.</p>                </div>
+                <div class="hero-image" onclick="openImageModal()">
+                    <img src="img/database.front.png" alt="Database visualization" id="hero-img"/>
+                </div>
+            </section>
+
+            <!-- Image Modal -->
+            <div id="imageModal" class="image-modal" onclick="closeImageModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <button class="close-modal" onclick="closeImageModal()">&times;</button>
+                    <img src="img/database.front.png" alt="Database visualization - Enlarged view" class="modal-image">
+                    <div class="modal-caption">Database visualization - Click outside to close</div>
+                </div>
+            </div>
+
+            <section class="content-grid">
+                <div class="card">
+                    <h3><i class="fas fa-download" style="margin-right: 6px;"></i>Download the information</h3>                    
+                    <p>Access the full PGA dataset and explore the genetic basis of 263 traits across 233 primate species. All files are openly available on GitHub in a standardized, ready-to-use format — ideal for comparative studies, evolutionary analyses, and integration into your own workflows.</p>
+                    <li><a href="https://github.com/pgarchive/data" target="_blank"><i class="fab fa-github"></i> Clone from GitHub</a></li>
+                    <li><a href="https://docs.google.com/spreadsheets/d/1DyBKiZdaz6YW_cAj8fbupxuaTxv33SvBV8LYF2hMD0k/edit?usp=sharing" target="_blank"><i class="fab fa-google-drive"></i> Access Google Docs</a></li>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-file-alt"></i> Documentation</h3>
+                    <p>A comprehensive user guide is available in PDF format, covering the structure of the dataset, methods used, and example use cases. Ideal for getting started and ensuring correct integration into your research.</p>
+                    <li><a href="#"><i class="fas fa-file-pdf"></i> Download (PDF)</a></li>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fab fa-github"></i> Commit history (v. 1.0)</h3>
+                    <ul id="commit-feed"></ul>
+                </div>
+            </section>
+            
+            <section class="hero" id="about" style="margin-top: 4rem;">
+                <div class="hero-image">
+                    <img src="img/apelogos.warhol.png" alt="Database visualization" id="hero-img"/>
+                </div>
+                <div class="hero-content">
+                    <h1>About the PGA</h1>
+                    <p>
+                        The Primate Genome-phenome Archive (PGA) is the result of a collaborative effort between the research groups of <a href="#">Arcadi Navarro</a> (<strong>Institut de Biologia Evolutiva</strong>, <strong>Universitat Pompeu Fabra</strong> – <strong>IBE-UPF</strong>, <strong>Barcelona, Spain</strong>), <a href="#">David Juan</a> (<strong>Centro Nacional de Biotecnología</strong> – <strong>CNB-CSIC</strong>, <strong>Madrid, Spain</strong>), and <a href="#">Gerard Muntané</a> (<strong>Institut d'Investigació Sanitària Pere Virgili</strong> – <strong>IISPV</strong>, <strong>Tarragona, Spain</strong>).
+                        This resource represents one of the main contributions of the doctoral thesis of <a href="#">Alejandro Valenzuela</a> (<strong>IBE-UPF</strong>), who is also the first author of the scientific publication associated with the PGA. The website and the organization of the dataset were developed by <a href="#">Fabio Barteri</a>, co-first author of the publication and currently affiliated with the <strong>Natural Science Museum of Barcelona</strong> and the <strong>Institut de Biologia Evolutiva</strong>.
+                    </p>      
+                    <h3>License</h3>              
+                    <p><a href="https://www.ibe.upf-csic.es/">Primate Genome-phenome Archive</a> © 2025 by <a href="https://www.ibe.upf-csic.es/">IBE-UPF</a> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>
+                </div>
+            </section>
+        </main>
+
+<footer>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; text-align: left; gap: 2rem;">
+        <div style="flex: 1; min-width: 250px;">
+        <img src="img/ibe.white.png" alt="IBE logo" style="width: 100%; height: auto; max-width: 300px;" />
+        </div>
+        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+            <!-- <img src="img/scinat.png" alt="Natural Science Museum logo" style="width: 100%; height: auto; max-width: 300px;" /> -->
+        </div>
+
+        <div style="flex: 1; min-width: 250px; display: flex; justify-content: center; align-items: center;">
+            <img src="img/alt.logo.png" alt="ALT logo" style="width: 100%; height: auto; max-width: 300px;" />
+        </div>
     </div>
+</footer>
+    </div>
+
+    <script>
+        // Image Modal Functions
+        function openImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'flex';
+            
+            // Trigger animation after display is set
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal(event) {
+            // If event is provided, check if we clicked outside the modal content
+            if (event && event.target !== event.currentTarget && !event.target.classList.contains('close-modal')) {
+                return;
+            }
+            
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('show');
+            
+            // Wait for animation to complete before hiding
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 400);
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+
+        // Prevent right-click context menu on modal image (optional)
+        document.addEventListener('contextmenu', function(event) {
+            if (event.target.classList.contains('modal-image')) {
+                event.preventDefault();
+            }
+        });
+
+        async function loadGitHubCommits() {
+            const feedContainer = document.getElementById('commit-feed');
+            feedContainer.innerHTML = '<li class="loading">Caricamento commit...</li>';
+            
+            try {
+                // Usando l'API REST di GitHub invece dell'Atom feed
+                const response = await fetch('https://api.github.com/repos/linudz/caastools/commits?per_page=3');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const commits = await response.json();
+                feedContainer.innerHTML = '';
+                
+                commits.forEach(commit => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    
+                    a.href = commit.html_url;
+                    a.target = '_blank';
+                    a.textContent = commit.commit.message.split('\n')[0]; // Prima riga del messaggio
+                    
+                    const date = new Date(commit.commit.author.date);
+                    const dateSpan = document.createElement('span');
+                    dateSpan.className = 'commit-date';
+                    dateSpan.textContent = `(${date.toLocaleDateString('it-IT')})`;
+                    
+                    li.appendChild(a);
+                    li.appendChild(dateSpan);
+                    feedContainer.appendChild(li);
+                });
+                
+            } catch (error) {
+                console.error('Errore nel caricamento dei commit:', error);
+                feedContainer.innerHTML = `
+                    <li class="error">Impossibile caricare i commit.</li>
+                    <li><a href="https://github.com/linudz/caastools/commits/main" target="_blank">
+                        <i class="fab fa-github"></i> Visualizza su GitHub
+                    </a></li>
+                `;
+            }
+        }
+        
+        // Carica i commit quando la pagina è pronta
+        document.addEventListener('DOMContentLoaded', loadGitHubCommits);
+    </script>
 </body>
 </html>
